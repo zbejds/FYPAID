@@ -54,6 +54,10 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:co
 .btn-ghost:hover{border-color:var(--muted)}
 .btn-cyan{background:var(--cyan);color:#031414;box-shadow:3px 3px 0 var(--pink)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
+.xbtn{width:44px;height:44px;flex:none;border-radius:14px;display:grid;place-items:center;background:var(--surface2);border:1px solid var(--line2);color:var(--fg);font-size:19px;font-weight:700;transition:border-color .15s,box-shadow .2s,transform .15s}
+.xbtn:hover{border-color:var(--muted);box-shadow:-3px -3px 0 var(--cyan),3px 3px 0 var(--pink);transform:translateY(-1px)}
+@media (max-width:820px){.xbtn{margin-left:auto}}
+.xfoot{display:inline-flex;align-items:center;gap:8px}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--dim)}
 .dot.on{background:var(--ok);box-shadow:0 0 10px var(--ok)}
 
@@ -87,6 +91,8 @@ h3{font-size:20px;letter-spacing:-.025em}
 .ca code{font-family:var(--mono);color:var(--muted);background:var(--surface);border:1px solid var(--line);padding:6px 10px;border-radius:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;max-width:100%}
 .mini{font-size:12px;font-weight:800;padding:6px 11px;border-radius:9px;background:var(--surface2);border:1px solid var(--line2);cursor:pointer;color:var(--fg);white-space:nowrap}
 .mini:hover{border-color:var(--muted)}
+.ca code.ca-empty{min-width:min(330px,60vw);border-style:dashed;border-color:var(--line2)}
+.mini:disabled{opacity:.4;cursor:not-allowed}
 .hstats{display:grid;grid-template-columns:repeat(3,auto);gap:36px;margin-top:40px;justify-content:start}
 @media (max-width:480px){.hstats{gap:22px}}
 .hstats .v{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
@@ -364,6 +370,7 @@ footer{border-top:1px solid var(--line);padding-block:48px 40px;color:var(--mute
       <button class="tab" data-go="claim">Claim</button>
       <button class="tab" data-go="invite">Invite</button>
     </nav>
+    <a class="xbtn" href="https://x.com/FYPaidsol" target="_blank" rel="noopener" aria-label="FYPaid on X (@FYPaidsol)" title="@FYPaidsol on X">𝕏</a>
     <button class="btn btn-ghost" id="walletBtn"><span class="dot" id="wdot"></span><span id="wtext">Connect wallet</span></button>
   </div>
   <div class="ticker" aria-label="Recent creator payouts (example)"><div class="run" id="payTicker"></div></div>
@@ -387,7 +394,7 @@ footer{border-top:1px solid var(--line);padding-block:48px 40px;color:var(--mute
         <div><div class="v" id="hsPaid">0</div><div class="l">SOL to creators</div></div>
         <div><div class="v" id="hsBurn">0</div><div class="l">SOL burned</div></div>
       </div>
-      <div class="ca"><span class="tag">$FYP CA</span><code id="caText">FYPd7Qm2…set-after-launch…pump</code><button class="mini" id="copyCa">Copy</button><a class="mini" href="https://pump.fun" target="_blank" rel="noopener">pump.fun ↗</a></div>
+      <div class="ca"><span class="tag">$FYP CA</span><code id="caText" class="ca-empty">&nbsp;</code><button class="mini" id="copyCa">Copy</button><a class="mini" href="https://pump.fun" target="_blank" rel="noopener">pump.fun ↗</a><a class="mini" href="https://x.com/FYPaidsol" target="_blank" rel="noopener">𝕏 Follow</a></div>
     </div>
 
     <div class="phone-wrap">
@@ -599,7 +606,7 @@ footer{border-top:1px solid var(--line);padding-block:48px 40px;color:var(--mute
   <div class="frow">
     <div><a class="logo" href="#launch" data-go="launch"><svg><use href="#mark"/></svg><span class="wm">FY<b>Paid</b></span></a>
       <p>Independent and not affiliated with TikTok or ByteDance. Memecoins are highly speculative. Don't launch a coin in someone's name to mislead buyers.</p></div>
-    <div class="flinks"><a href="#launch" data-go="launch">Launch</a><a href="#launches" data-go="launches">Launches</a><a href="#claim" data-go="claim">Claim</a><a href="#invite" data-go="invite">Invite</a><a href="https://pump.fun" target="_blank" rel="noopener">pump.fun ↗</a></div>
+    <div class="flinks"><a href="#launch" data-go="launch">Launch</a><a href="#launches" data-go="launches">Launches</a><a href="#claim" data-go="claim">Claim</a><a href="#invite" data-go="invite">Invite</a><a href="https://pump.fun" target="_blank" rel="noopener">pump.fun ↗</a><a class="xfoot" href="https://x.com/FYPaidsol" target="_blank" rel="noopener">𝕏 @FYPaidsol ↗</a></div>
   </div>
   <div class="fgiant" aria-hidden="true">FYPaid</div>
 </div></footer>
@@ -793,7 +800,10 @@ $('#genCode').addEventListener('click',()=>{const h=$('#claimHandle').value.repl
 $('#verifyBtn').addEventListener('click',async()=>{const s=$('#claimStatus');s.className='status';s.textContent='Checking your public bio…';
  await new Promise(r=>setTimeout(r,900));const h=$('#claimHandle').value.replace(/^@/,'').trim().toLowerCase();
  s.className='status ok';s.textContent=`Demo: @${h} verified. ${(by[h]?.f||0).toFixed(3)} SOL ready to claim. Connect a wallet to receive it.`});
-$('#copyCa').addEventListener('click',()=>copy($('#caText').textContent));
+/* ===== Paste your $FYP contract address between the quotes after launch ===== */
+const CA='';
+if(CA){$('#caText').textContent=CA;$('#caText').classList.remove('ca-empty')}else{$('#copyCa').disabled=true}
+$('#copyCa').addEventListener('click',()=>{if(CA)copy(CA)});
 $('#copyRef').addEventListener('click',()=>copy($('#refLink').textContent));
 </script>
 </body></html>
