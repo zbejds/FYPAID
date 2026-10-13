@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050507"><link rel="icon" href="favicon.svg">
+<style>[hidden]{display:none!important}img{max-width:100%}</style>
+</head><body>
+<title>FYPaid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: For You world. Sticky nav + payout ticker; split hero (headline + stats | animated phone); launch form beside the same phone as live preview; flywheel; feed; leaderboard; FAQ. Chromatic cyan/pink offset is the one bold move. */
+:root{
+  --bg:#050507; --surface:#0f0f13; --surface2:#17171d; --line:#22222a; --line2:#30303a;
+  --fg:#f7f7f9; --muted:#8d8d99; --dim:#5a5a66;
+  --cyan:#25f4ee; --pink:#fe2c55; --ok:#3ddc97;
+  --display:"Bricolage Grotesque","Arial Black",system-ui,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.55;margin:0;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(38% 42% at 12% 8%,color-mix(in srgb,var(--cyan) 11%,transparent),transparent 70%),
+             radial-gradient(38% 42% at 92% 4%,color-mix(in srgb,var(--pink) 13%,transparent),transparent 70%)}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+a{color:var(--cyan);text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;position:relative;z-index:1}
+@media (max-width:480px){.wrap{padding-inline:16px}}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+
+/* logo */
+.logo{display:inline-flex;align-items:center;gap:11px;color:var(--fg);font-family:var(--display);font-weight:800;font-size:23px;letter-spacing:-.04em}
+.logo svg{width:38px;height:38px;flex:none;transition:transform .3s cubic-bezier(.3,1.6,.5,1)}
+.logo:hover svg{transform:rotate(-8deg) scale(1.06)}
+.wm{position:relative}
+.wm b{font-weight:800;color:var(--fg);text-shadow:-1.5px -1px 0 var(--cyan),1.5px 1px 0 var(--pink)}
+
+/* nav */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;gap:20px;padding-block:12px}
+.tabs{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;justify-content:center}
+.tabs::-webkit-scrollbar{display:none}
+.tab{background:none;border:0;padding:8px 14px;color:var(--muted);font-weight:700;cursor:pointer;position:relative;white-space:nowrap;border-radius:10px}
+.tab:hover{color:var(--fg);background:var(--surface2)}
+.tab[aria-current="true"]{color:var(--fg)}
+.tab[aria-current="true"]::after{content:"";position:absolute;left:14px;right:14px;bottom:1px;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--cyan),var(--pink))}
+@media (max-width:820px){.nav{flex-wrap:wrap}.tabs{order:3;flex-basis:100%;justify-content:flex-start}}
+.btn{border:0;border-radius:14px;padding:12px 20px;font-weight:800;cursor:pointer;transition:transform .15s,box-shadow .2s;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:scale(.97)}
+.btn-pink{background:var(--pink);color:#fff;box-shadow:-3px -3px 0 var(--cyan)}
+.btn-pink:hover{box-shadow:-5px -5px 0 var(--cyan),5px 5px 24px -8px var(--pink)}
+.btn-ghost{background:var(--surface2);color:var(--fg);border:1px solid var(--line2)}
+.btn-ghost:hover{border-color:var(--muted)}
+.btn-cyan{background:var(--cyan);color:#031414;box-shadow:3px 3px 0 var(--pink)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+.dot.on{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+
+/* ticker */
+.ticker{overflow:hidden;font-size:13px;white-space:nowrap;border-top:1px solid var(--line);-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.ticker .run{display:inline-flex;gap:40px;padding-block:8px;animation:run 45s linear infinite}
+.ticker span{color:var(--muted);display:inline-flex;gap:6px;align-items:center}
+.ticker b{color:var(--fg)} .ticker i{font-style:normal;color:var(--ok);font-family:var(--mono);font-weight:700}
+.ticker .live{color:var(--pink);font-weight:800;font-family:var(--mono);font-size:11px;letter-spacing:.1em}
+@keyframes run{to{transform:translateX(-50%)}}
+
+main{padding-block:52px 100px}
+section+section{margin-top:110px}
+h1,h2,h3{font-family:var(--display);letter-spacing:-.04em;text-wrap:balance;margin:0;font-weight:800}
+h1{font-size:clamp(46px,7.6vw,96px);line-height:.92}
+.chroma{color:var(--fg);text-shadow:-.04em -.025em 0 var(--cyan),.04em .025em 0 var(--pink)}
+h2{font-size:clamp(30px,4.4vw,52px);line-height:1}
+h3{font-size:20px;letter-spacing:-.025em}
+.eyebrow{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:inline-flex;align-items:center;gap:8px;margin-bottom:18px}
+.eyebrow::before{content:"";width:18px;height:2px;background:linear-gradient(90deg,var(--cyan),var(--pink))}
+.lede{color:var(--muted);font-size:18px;max-width:44ch;margin:22px 0 0;line-height:1.5}
+.lede b{color:var(--fg);font-weight:700}
+.tag{font-size:11px;color:var(--dim);font-family:var(--mono);text-transform:uppercase;letter-spacing:.12em}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:56px;align-items:center}
+@media (max-width:900px){.hero{grid-template-columns:1fr;gap:44px}.hero .phone-wrap{max-width:320px;margin:0 auto}}
+.ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
+.ctas .btn{padding:15px 24px;font-size:16px}
+.ca{display:flex;align-items:center;gap:8px;margin-top:28px;font-size:13px;flex-wrap:wrap}
+.ca code{font-family:var(--mono);color:var(--muted);background:var(--surface);border:1px solid var(--line);padding:6px 10px;border-radius:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;max-width:100%}
+.mini{font-size:12px;font-weight:800;padding:6px 11px;border-radius:9px;background:var(--surface2);border:1px solid var(--line2);cursor:pointer;color:var(--fg);white-space:nowrap}
+.mini:hover{border-color:var(--muted)}
+.hstats{display:grid;grid-template-columns:repeat(3,auto);gap:36px;margin-top:40px;justify-content:start}
+@media (max-width:480px){.hstats{gap:22px}}
+.hstats .v{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.hstats .l{font-size:12px;color:var(--muted);font-weight:600}
+
+/* phone */
+.phone-wrap{position:relative}
+.phone{aspect-ratio:9/18;width:100%;max-width:100%;border-radius:44px;background:#000;border:9px solid #1b1b21;position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px #2c2c34,-22px -16px 60px -28px var(--cyan),22px 16px 60px -28px var(--pink),0 40px 80px -30px rgba(0,0,0,.9)}
+.phone::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:84px;height:22px;border-radius:14px;background:#000;z-index:5}
+.slides{position:absolute;inset:0;transition:transform .7s cubic-bezier(.65,0,.35,1)}
+.slide{position:absolute;left:0;right:0;height:100%;display:grid;place-items:center}
+.slide .bgart{position:absolute;inset:0;background:radial-gradient(75% 50% at 50% 40%,var(--c),#000 88%);opacity:.8}
+.slide .bgart img{width:100%;height:100%;object-fit:cover}
+.slide .glyph{position:relative;font-family:var(--display);font-weight:800;font-size:120px;color:#fff;text-shadow:-6px -4px 0 var(--cyan),6px 4px 0 var(--pink);animation:bob 3.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px) rotate(-3deg)}}
+.ptop{position:absolute;top:40px;left:0;right:0;text-align:center;font-size:14px;font-weight:700;color:rgba(255,255,255,.55);z-index:3}
+.ptop b{color:#fff;position:relative}
+.ptop b::after{content:"";position:absolute;left:25%;right:25%;bottom:-6px;height:2px;background:#fff;border-radius:2px}
+.prail{position:absolute;right:10px;bottom:130px;display:grid;gap:18px;justify-items:center;font-size:11px;font-weight:700;z-index:3}
+.prail .r{display:grid;justify-items:center;gap:3px;position:relative}
+.prail .ic{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;backdrop-filter:blur(4px)}
+.prail .ic svg{width:22px;height:22px}
+.prail .ic.coin{background:var(--pink);animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--pink) 60%,transparent)}50%{box-shadow:0 0 0 9px transparent}}
+.pav{width:44px;height:44px;border-radius:50%;border:2px solid #fff;display:grid;place-items:center;font-family:var(--display);font-weight:800;color:#050507;background:var(--cyan);position:relative}
+.pav::after{content:"+";position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);width:18px;height:18px;border-radius:50%;background:var(--pink);color:#fff;font-size:14px;line-height:18px;text-align:center;font-family:var(--body)}
+.pinfo{position:absolute;left:14px;right:70px;bottom:22px;font-size:13px;display:grid;gap:7px;text-shadow:0 1px 6px rgba(0,0,0,.8);z-index:3}
+.pinfo .h{font-weight:800;font-size:16px}
+.pinfo .d{color:rgba(255,255,255,.85);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pfee{display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:5px 9px;font-size:12px;width:fit-content;max-width:100%;backdrop-filter:blur(4px)}
+.pfee b{color:var(--pink)}
+.bubbles{position:absolute;right:12px;bottom:200px;width:60px;height:280px;pointer-events:none;z-index:4}
+.bub{position:absolute;bottom:0;right:0;font-family:var(--mono);font-weight:700;font-size:12px;color:#fff;background:rgba(61,220,151,.9);padding:3px 8px;border-radius:999px;white-space:nowrap;animation:rise 2.6s ease-out forwards}
+@keyframes rise{0%{transform:translate(0,0) scale(.6);opacity:0}15%{opacity:1;transform:translate(-4px,-30px) scale(1)}100%{transform:translate(var(--dx),-260px) scale(.9);opacity:0}}
+.pbar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.2);z-index:4}
+.pbar i{display:block;height:100%;background:#fff;width:0;animation:prog 4s linear infinite}
+@keyframes prog{to{width:100%}}
+.floatchip{position:absolute;z-index:6;background:var(--surface);border:1px solid var(--line2);border-radius:14px;padding:10px 14px;font-size:13px;box-shadow:0 20px 40px -20px #000;display:flex;gap:10px;align-items:center}
+.floatchip .k{font-family:var(--mono);font-weight:700;color:var(--ok)}
+.fc1{left:-40px;top:22%;animation:float 5s ease-in-out infinite}
+.fc2{left:-56px;bottom:30%;animation:float 6s ease-in-out infinite reverse}
+@keyframes float{50%{transform:translateY(-10px)}}
+@media (max-width:1100px){.fc1,.fc2{left:-12px}}
+.cap{text-align:center;font-size:12px;color:var(--muted);margin-top:14px}
+
+/* builder */
+.builder{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:36px;align-items:start;margin-top:36px}
+@media (max-width:900px){.builder{grid-template-columns:1fr}.builder .phone-col{display:none}}
+.phone-col{position:sticky;top:130px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:24px}
+.formcard{padding:28px;position:relative}
+.formcard::before{content:"";position:absolute;inset:-1px;border-radius:23px;padding:1px;background:linear-gradient(135deg,color-mix(in srgb,var(--cyan) 50%,transparent),transparent 35%,transparent 65%,color-mix(in srgb,var(--pink) 50%,transparent));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:560px){.fgrid{grid-template-columns:1fr}}
+.span2{grid-column:1/-1}
+.field{display:grid;gap:7px;min-width:0}
+.field label,.lbl{font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.field small{color:var(--dim);font-size:12px}
+input[type=text],input[type=number],textarea{width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:13px;padding:13px 14px;min-width:0;transition:border-color .15s,box-shadow .15s}
+input::placeholder,textarea::placeholder{color:var(--dim)}
+input:focus,textarea:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 4px color-mix(in srgb,var(--cyan) 12%,transparent)}
+textarea{resize:vertical;min-height:80px}
+.handle{display:flex;align-items:center;background:var(--bg);border:1px solid var(--line2);border-radius:13px;padding-left:15px;transition:border-color .15s,box-shadow .15s}
+.handle:focus-within{border-color:var(--pink);box-shadow:0 0 0 4px color-mix(in srgb,var(--pink) 12%,transparent)}
+.handle span{color:var(--pink);font-weight:800;font-size:18px}
+.handle input{border:0!important;background:transparent!important;box-shadow:none!important;padding-left:4px;font-weight:700}
+.creator{display:flex;gap:11px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:13px;padding:10px 12px;font-size:13px}
+.av{width:36px;height:36px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:800;color:#050507;font-family:var(--display)}
+.badge{font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.badge.v{background:color-mix(in srgb,var(--cyan) 15%,transparent);color:var(--cyan)}
+.badge.u{background:color-mix(in srgb,var(--muted) 15%,transparent);color:var(--muted)}
+.badge.p{background:color-mix(in srgb,var(--pink) 15%,transparent);color:var(--pink)}
+.drop{display:flex;gap:14px;align-items:center;border:1.5px dashed var(--line2);border-radius:15px;padding:12px;cursor:pointer;transition:border-color .15s,background .15s}
+.drop:hover{border-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 4%,transparent)}
+.thumb{width:54px;height:54px;border-radius:13px;background:var(--surface2);display:grid;place-items:center;overflow:hidden;flex:none;color:var(--muted);font-size:22px}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.splitbar{display:flex;height:10px;gap:3px}
+.splitbar i{display:block;border-radius:99px}
+.splitbar i:nth-child(1){background:var(--cyan);flex:9}
+.splitbar i:nth-child(2){background:var(--pink);flex:1}
+.legend{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:7px;gap:8px;flex-wrap:wrap}
+.legend b{color:var(--fg)}
+.linkbtn{background:none;border:0;color:var(--cyan);font-weight:700;cursor:pointer;padding:0;justify-self:start}
+.full{width:100%;padding-block:16px;font-size:16px}
+.status{font-size:13px;min-height:1.2em}
+.status.err{color:var(--pink)} .status.ok{color:var(--ok)}
+.custody{font-size:12px;color:var(--dim);margin:0}
+
+/* how it works */
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px;counter-reset:s}
+@media (max-width:820px){.how{grid-template-columns:1fr}}
+.how .card{display:grid;gap:12px;align-content:start;padding:26px}
+.how .ill{height:120px;border-radius:14px;background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;position:relative;overflow:hidden}
+.how .n{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.1em}
+.how .card:nth-child(1) .n{color:var(--cyan)} .how .card:nth-child(2) .n{color:var(--fg)} .how .card:nth-child(3) .n{color:var(--pink)}
+.how p{margin:0;color:var(--muted);font-size:14px}
+.ill1 .pill{font-family:var(--mono);font-size:12px;background:var(--surface2);border:1px solid var(--line2);padding:8px 12px;border-radius:10px}
+.ill1 .pill b{color:var(--cyan)}
+.ill2 .vault{display:flex;gap:6px;align-items:end;height:64px}
+.ill2 .vault i{width:16px;border-radius:5px 5px 2px 2px;background:linear-gradient(var(--cyan),color-mix(in srgb,var(--cyan) 30%,transparent));animation:grow 2.4s ease-in-out infinite}
+.ill2 .vault i:nth-child(2){animation-delay:.2s}.ill2 .vault i:nth-child(3){animation-delay:.4s}.ill2 .vault i:nth-child(4){animation-delay:.6s}.ill2 .vault i:nth-child(5){animation-delay:.8s}
+@keyframes grow{0%,100%{height:20%}50%{height:100%}}
+.ill3 .bio{background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:10px 14px;font-size:12px;display:grid;gap:4px;min-width:170px}
+.ill3 .bio code{font-family:var(--mono);color:var(--pink);font-weight:700}
+.ill3 .bio .ok{color:var(--ok);font-weight:700}
+
+/* flywheel */
+.fly{display:grid;grid-template-columns:auto 1fr;gap:56px;align-items:center}
+@media (max-width:820px){.fly{grid-template-columns:1fr;gap:24px}}
+.big{font-family:var(--display);font-weight:800;font-size:clamp(96px,16vw,200px);line-height:.82;letter-spacing:-.06em;text-shadow:-.025em -.018em 0 var(--cyan),.025em .018em 0 var(--pink)}
+.flow{display:grid;grid-template-columns:repeat(3,1fr);margin-top:36px;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:var(--surface)}
+@media (max-width:640px){.flow{grid-template-columns:1fr}}
+.flow div{padding:22px 24px;display:grid;gap:5px;position:relative}
+.flow div+div{border-left:1px solid var(--line)}
+@media (max-width:640px){.flow div+div{border-left:0;border-top:1px solid var(--line)}}
+.flow .k{font-family:var(--mono);font-size:12px;color:var(--dim);font-weight:700}
+.flow b{font-size:16px} .flow span{font-size:14px;color:var(--muted)}
+.burned{display:flex;gap:18px;align-items:baseline;margin-top:22px;flex-wrap:wrap}
+.burned .v{font-family:var(--mono);font-size:30px;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* feed */
+.sechead{display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;margin-bottom:24px}
+.sechead a{font-weight:700}
+.feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.coin{border-radius:20px;overflow:hidden;position:relative;aspect-ratio:9/14;max-width:100%;background:#000;border:1px solid var(--line);transition:transform .2s,box-shadow .2s;cursor:pointer}
+.coin:hover{transform:translateY(-5px) rotate(-.6deg);box-shadow:-6px -6px 0 -2px var(--cyan),6px 6px 0 -2px var(--pink)}
+.coin .bg{position:absolute;inset:0;background:radial-gradient(70% 55% at 50% 38%,var(--c),#000 88%);opacity:.8}
+.coin .g{position:absolute;inset:0 0 35%;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:72px;color:#fff;text-shadow:-3px -2px 0 var(--cyan),3px 2px 0 var(--pink)}
+.coin .views{position:absolute;top:12px;left:12px;font-size:11px;font-weight:700;background:rgba(0,0,0,.55);padding:4px 9px;border-radius:7px;font-family:var(--mono)}
+.coin .chg{position:absolute;top:12px;right:12px;font-size:11px;font-weight:700;padding:4px 9px;border-radius:7px;font-family:var(--mono);background:rgba(61,220,151,.18);color:var(--ok)}
+.coin .m{position:absolute;left:0;right:0;bottom:0;padding:16px;display:grid;gap:6px;font-size:12px;background:linear-gradient(transparent,rgba(0,0,0,.92) 40%)}
+.coin .nm{font-weight:800;font-size:16px;font-family:var(--display);letter-spacing:-.02em}
+.coin .to{color:rgba(255,255,255,.75)} .coin .to b{color:var(--pink)}
+.coin .st{display:flex;justify-content:space-between;font-family:var(--mono);color:rgba(255,255,255,.7);font-variant-numeric:tabular-nums}
+.coin .curve{height:4px;border-radius:4px;background:rgba(255,255,255,.15);overflow:hidden}
+.coin .curve i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--pink))}
+
+/* leaderboard */
+.lb{display:grid;gap:8px}
+.lbrow{display:grid;grid-template-columns:34px 44px minmax(0,1fr) auto auto;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 16px}
+@media (max-width:560px){.lbrow{grid-template-columns:26px 40px minmax(0,1fr) auto}.lbrow .coins{display:none}}
+.lbrow .rk{font-family:var(--display);font-weight:800;font-size:20px;color:var(--dim)}
+.lbrow:nth-child(1) .rk{color:var(--cyan)} .lbrow:nth-child(2) .rk{color:var(--fg)} .lbrow:nth-child(3) .rk{color:var(--pink)}
+.lbrow .who{min-width:0;display:grid}
+.lbrow .who b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbrow .who span{font-size:12px;color:var(--muted)}
+.lbrow .coins{font-size:13px;color:var(--muted)}
+.lbrow .amt{font-family:var(--mono);font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+
+/* faq */
+.faq{display:grid;gap:10px;max-width:820px}
+details{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:0 22px}
+details[open]{border-color:var(--line2)}
+summary{list-style:none;cursor:pointer;padding:18px 0;font-weight:700;font-size:16px;display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--mono);color:var(--pink);font-size:20px;line-height:1;transition:transform .2s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{margin:0 0 18px;color:var(--muted);max-width:65ch}
+
+/* tables, kpis */
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:620px}
+th,td{text-align:left;padding:14px 18px;border-bottom:1px solid var(--line)}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:800}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right} td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px}
+@media (max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{padding:20px}
+.kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;font-weight:800}
+.kpi .v{font-family:var(--display);font-size:32px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin-top:6px}
+
+/* claim */
+.claimgrid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:820px){.claimgrid{grid-template-columns:1fr}}
+.code{font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:.14em;background:var(--bg);border:1.5px dashed var(--cyan);border-radius:14px;padding:16px;text-align:center;margin:12px 0}
+.vstep{display:grid;grid-template-columns:36px 1fr;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+.vstep:last-child{border-bottom:0}
+.vstep .k{width:36px;height:36px;border-radius:11px;background:var(--surface2);display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:13px}
+.vstep b{display:block;font-size:15px}
+.vstep span{font-size:13px;color:var(--muted)}
+.stack{display:grid;gap:14px}
+
+.view[hidden]{display:none!important}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:12px 20px;border-radius:14px;font-weight:700;font-size:14px;z-index:50;box-shadow:-3px -3px 0 var(--cyan),3px 3px 0 var(--pink)}
+
+/* footer */
+footer{border-top:1px solid var(--line);padding-block:48px 40px;color:var(--muted);font-size:13px;position:relative;z-index:1;overflow:hidden}
+.fgiant{font-family:var(--display);font-weight:800;font-size:clamp(80px,19vw,250px);line-height:.8;letter-spacing:-.06em;color:var(--surface2);text-shadow:-.012em -.008em 0 color-mix(in srgb,var(--cyan) 35%,transparent),.012em .008em 0 color-mix(in srgb,var(--pink) 35%,transparent);margin-top:36px;white-space:nowrap;user-select:none}
+.frow{display:flex;gap:24px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.frow p{margin:10px 0 0;max-width:56ch}
+.flinks{display:flex;gap:18px;flex-wrap:wrap}
+.flinks a{color:var(--muted);font-weight:600}
+.flinks a:hover{color:var(--fg)}
+/* real videos */
+.slide video,.coin .poster,.coin .cv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.coin .cv{opacity:0;transition:opacity .3s}
+.coin.playing .cv{opacity:1}
+.shade{position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(rgba(0,0,0,.35),transparent 18%,transparent 55%,rgba(0,0,0,.7))}
+#heroPhone{cursor:pointer}
+.ci{width:24px;height:24px;border-radius:50%;object-fit:cover;border:2px solid #fff;flex:none;box-shadow:-2px -2px 0 var(--cyan),2px 2px 0 var(--pink)}
+.coin .nm{display:flex;align-items:center;gap:8px}
+.disc{width:44px;height:44px;border-radius:50%;padding:7px;background:conic-gradient(#2a2a30,#111 25%,#2a2a30 50%,#111 75%,#2a2a30);display:grid;place-items:center;animation:spin 5s linear infinite;box-shadow:0 0 0 1px rgba(255,255,255,.15)}
+.disc img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pbar i.go{animation:prog var(--dur,5s) linear forwards}
+#heroPhone .pbar i{animation:none}
+#heroPhone .pbar i.go{animation:prog var(--dur,5s) linear forwards}
+/* avatars + profiles */
+.av.img{background:none!important;padding:0;overflow:hidden}
+.av.img svg,.pav svg{display:block;width:100%;height:100%;border-radius:50%}
+.pav{overflow:visible;padding:0}
+.lbrow{width:100%;text-align:left;color:inherit;font:inherit;cursor:pointer;transition:border-color .15s,transform .15s}
+.lbrow:hover{border-color:var(--line2);transform:translateX(4px)}
+.lbrow .who b{display:flex;gap:6px;align-items:center}
+.lbrow .who em{font-style:normal;font-weight:500;color:var(--muted);font-size:13px}
+.plink{background:none;border:0;padding:0;color:var(--fg);font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:10px}
+.plink:hover{color:var(--cyan)}
+.pover{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:grid;place-items:center;padding:16px}
+.pover[hidden],.toast[hidden]{display:none!important}
+.psheet{width:min(440px,100%);max-height:88vh;overflow:auto;background:var(--surface);border:1px solid var(--line2);border-radius:26px;padding:30px 22px 24px;position:relative;text-align:center;box-shadow:-6px -6px 0 -2px var(--cyan),6px 6px 0 -2px var(--pink);animation:pop .25s cubic-bezier(.3,1.4,.5,1)}
+@keyframes pop{from{transform:scale(.94);opacity:0}}
+.pclose{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line2);background:var(--surface2);color:var(--fg);font-size:20px;line-height:1;cursor:pointer}
+.pbig{width:104px;height:104px;margin:0 auto;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--cyan),var(--pink))}
+.pbig svg{width:100%;height:100%;display:block;border-radius:50%;border:3px solid var(--surface)}
+.phandle{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.03em;margin-top:14px;display:flex;justify-content:center;align-items:center;gap:8px}
+.pname{color:var(--muted);font-size:14px;margin-top:2px}
+.pstats{display:flex;justify-content:center;gap:28px;margin:18px 0 14px}
+.pstats b{display:block;font-family:var(--display);font-size:19px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.pstats span{font-size:12px;color:var(--muted)}
+.pbio{margin:0 auto 18px;max-width:34ch;font-size:14px}
+.pbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:22px}
+.pearn{display:flex;justify-content:space-between;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:16px;text-align:left;gap:12px}
+.pearn .v{font-family:var(--mono);font-weight:700;font-size:20px;color:var(--ok)}
+.pcoins{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;border-radius:12px;overflow:hidden}
+.pcoin{aspect-ratio:3/4;max-width:100%;position:relative;background:#000;overflow:hidden}
+.pcoin img{width:100%;height:100%;object-fit:cover;display:block}
+.pcoin .gg{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:34px;color:#fff;background:radial-gradient(70% 55% at 50% 40%,var(--c),#000 90%);text-shadow:-2px -1px 0 var(--cyan),2px 1px 0 var(--pink)}
+.pcoin span{position:absolute;left:6px;bottom:6px;font-family:var(--mono);font-size:11px;font-weight:700;background:rgba(0,0,0,.6);padding:2px 6px;border-radius:5px}
+.ptab{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;margin-bottom:10px}
+.swipe{position:absolute;left:50%;bottom:-34px;transform:translateX(-50%);font-size:12px;color:var(--muted);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="tileg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1c1c25"/><stop offset="1" stop-color="#050507"/></linearGradient>
+    <path id="pglyph" fill-rule="evenodd" d="M20 14h13.5a11 11 0 0 1 0 22H29v4.5a3.5 3.5 0 0 1-3.5 3.5h-2A3.5 3.5 0 0 1 20 40.5V17.5A3.5 3.5 0 0 1 23.5 14ZM28.5 20.5v9.4l8.2-4.7Z"/>
+    <symbol id="mark" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="17" fill="url(#tileg)"/>
+      <rect x=".75" y=".75" width="62.5" height="62.5" rx="16.3" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="1.5"/>
+      <use href="#pglyph" fill="#25f4ee" transform="translate(-2 -2)"/>
+      <use href="#pglyph" fill="#fe2c55" transform="translate(2 2)"/>
+      <use href="#pglyph" fill="#fff"/>
+      <circle cx="44" cy="44.5" r="5.2" fill="#25f4ee"/>
+      <circle cx="46" cy="46.5" r="5.2" fill="#fe2c55"/>
+      <circle cx="45" cy="45.5" r="5.2" fill="#fff"/>
+      <circle cx="45" cy="45.5" r="2.3" fill="none" stroke="#050507" stroke-width="1.5"/>
+    </symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path fill="#fff" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 2.9 4.5 6.6 4.5c2.1 0 3.6 1.2 5.4 3.2 1.8-2 3.3-3.2 5.4-3.2 3.7 0 5.7 3.9 4.2 7.3C19.5 16.4 12 21 12 21z"/></symbol>
+    <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2"/><path d="M12 6.5v11M9.5 9.5h4a1.8 1.8 0 010 3.6h-3a1.8 1.8 0 000 3.6h4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path fill="#fff" d="M14 5l7 7-7 7v-4c-5 0-8 1.5-10 5 .8-5.5 3.5-9.5 10-10.5V5z"/></symbol>
+  </defs>
+</svg>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#launch" data-go="launch" aria-label="FYPaid home"><svg><use href="#mark"/></svg><span class="wm">FY<b>Paid</b></span></a>
+    <nav class="tabs" aria-label="Sections">
+      <button class="tab" data-go="launch">Launch</button>
+      <button class="tab" data-go="launches">Launches</button>
+      <button class="tab" data-go="dashboard">Dashboard</button>
+      <button class="tab" data-go="posts">Posts</button>
+      <button class="tab" data-go="claim">Claim</button>
+      <button class="tab" data-go="invite">Invite</button>
+    </nav>
+    <button class="btn btn-ghost" id="walletBtn"><span class="dot" id="wdot"></span><span id="wtext">Connect wallet</span></button>
+  </div>
+  <div class="ticker" aria-label="Recent creator payouts (example)"><div class="run" id="payTicker"></div></div>
+</header>
+
+<main class="wrap">
+
+<!-- LAUNCH -->
+<div class="view" id="v-launch">
+  <section class="hero">
+    <div>
+      <div class="eyebrow">Built on pump.fun · Paid on Solana</div>
+      <h1>Launch a coin.<br><span class="chroma">Get a TikToker paid.</span></h1>
+      <p class="lede">Every trade of your coin pays creator fees to any <b>TikTok @handle</b> you choose. They verify once, link a wallet, and get paid for every trade after that.</p>
+      <div class="ctas">
+        <a class="btn btn-pink" href="#builder" id="ctaLaunch">Launch a coin</a>
+        <button class="btn btn-ghost" data-go="claim">I'm a creator · Claim</button>
+      </div>
+      <div class="hstats">
+        <div><div class="v" id="hsCoins">0</div><div class="l">coins launched</div></div>
+        <div><div class="v" id="hsPaid">0</div><div class="l">SOL to creators</div></div>
+        <div><div class="v" id="hsBurn">0</div><div class="l">SOL burned</div></div>
+      </div>
+      <div class="ca"><span class="tag">$FYP CA</span><code id="caText">FYPd7Qm2…set-after-launch…pump</code><button class="mini" id="copyCa">Copy</button><a class="mini" href="https://pump.fun" target="_blank" rel="noopener">pump.fun ↗</a></div>
+    </div>
+
+    <div class="phone-wrap">
+      <div class="floatchip fc1"><span id="fcAv"></span><span><b>@nightshiftnico</b><br><span class="k">+0.42 SOL</span></span></div>
+      <div class="floatchip fc2"><span style="font-size:12px;color:var(--muted)">fees paid out</span><span class="k" id="fcTotal">5.29 SOL</span></div>
+      <div class="phone" id="heroPhone" aria-label="Animated feed of coins paying creators. Click to go to the next video.">
+        <div class="slides" id="heroSlides"></div>
+        <div class="shade"></div>
+        <div class="ptop">Following &nbsp;&nbsp; <b>For You</b></div>
+        <div class="prail">
+          <div class="r"><span class="pav" id="heroAv">N</span></div>
+          <div class="r"><span class="ic"><svg><use href="#i-heart"/></svg></span><span id="heroLikes">12.4K</span></div>
+          <div class="r"><span class="ic coin"><svg><use href="#i-coin"/></svg></span><span id="heroFee">3.41</span></div>
+          <div class="r"><span class="ic"><svg><use href="#i-share"/></svg></span>Share</div>
+          <div class="r"><span class="disc"><img id="heroDisc" src="media/dfdog.jpg" alt=""></span></div>
+        </div>
+        <div class="bubbles" id="heroBubbles"></div>
+        <div class="pinfo">
+          <div class="h" id="heroT">$DFDOG</div>
+          <div class="d" id="heroD"></div>
+          <div class="pfee">fees → <b id="heroH">@nightshiftnico</b></div>
+        </div>
+        <div class="pbar"><i id="heroBar"></i></div>
+      </div>
+      <span class="swipe">Tap the phone to scroll</span>
+    </div>
+  </section>
+
+  <section id="builder" style="scroll-margin-top:130px">
+    <div class="eyebrow">Launch</div>
+    <h2>Make it. Name the creator. <span class="chroma">Ship it.</span></h2>
+    <div class="builder">
+      <form class="card formcard" id="launchForm" novalidate>
+        <div class="fgrid">
+          <div class="field span2">
+            <span class="lbl">Coin image</span>
+            <label class="drop" for="img"><span class="thumb" id="thumb">＋</span><span><b>Upload image</b><br><small>png · jpg · gif · webp, up to 4 MB</small></span></label>
+            <input type="file" id="img" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
+          </div>
+          <div class="field"><label for="name">Name</label><input type="text" id="name" maxlength="32" value="Dance Floor Dog"></div>
+          <div class="field"><label for="ticker">Ticker</label><input type="text" id="ticker" maxlength="10" value="DFDOG"></div>
+          <div class="field span2"><label for="desc">Description</label><textarea id="desc" maxlength="280">The dog from the 3am dance video. Every trade pays the creator.</textarea></div>
+          <div class="field span2">
+            <label for="handle">Pay creator fees to</label>
+            <div class="handle"><span>@</span><input type="text" id="handle" value="nightshiftnico" autocomplete="off" spellcheck="false"></div>
+            <div class="creator" id="creatorPreview"></div>
+          </div>
+          <div class="field span2">
+            <label for="msg">Message with each payout <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+            <input type="text" id="msg" maxlength="80" placeholder="Thanks for the alpha">
+            <small>Shown on the creator's claim page. Up to 80 characters, no links.</small>
+          </div>
+          <div class="field"><label for="devbuy">Dev buy (SOL)</label><input type="number" id="devbuy" min="0" step="0.01" placeholder="0.5"></div>
+          <div class="field" style="align-content:end">
+            <div class="splitbar" aria-hidden="true"><i></i><i></i></div>
+            <div class="legend"><span><b>90%</b> to @handle</span><span><b>10%</b> buyback</span></div>
+          </div>
+          <button type="button" class="linkbtn span2" id="addSocials">+ Add socials</button>
+          <div class="span2 fgrid" id="socials" hidden>
+            <input type="text" id="sx" placeholder="X link">
+            <input type="text" id="stg" placeholder="Telegram link">
+            <input type="text" id="sweb" placeholder="Website" class="span2">
+          </div>
+          <div class="span2 stack">
+            <button type="submit" class="btn btn-pink full" id="launchBtn">Connect wallet to launch</button>
+            <div class="status" id="launchStatus" role="status"></div>
+            <p class="custody">Custodial: fees route through the operator's vault and are paid out by script. Not trustless. Unclaimed fees return to the launcher after 60 days.</p>
+          </div>
+        </div>
+      </form>
+
+      <div class="phone-col">
+        <div class="phone" aria-label="Live preview of your coin">
+          <div class="slides"><div class="slide" style="top:0;--c:#25f4ee" id="pSlide"><div class="bgart" id="pBg"></div><div class="glyph" id="pGlyph" hidden>D</div><video id="pVid" muted loop playsinline autoplay preload="auto" poster="media/dfdog_p.jpg" src="media/dfdog.mp4"></video></div></div>
+          <div class="shade"></div>
+          <div class="ptop">Following &nbsp;&nbsp; <b>For You</b></div>
+          <div class="prail">
+            <div class="r"><span class="pav" id="pAv">N</span></div>
+            <div class="r"><span class="ic"><svg><use href="#i-heart"/></svg></span>0</div>
+            <div class="r"><span class="ic coin"><svg><use href="#i-coin"/></svg></span><span id="pFee">0</span></div>
+            <div class="r"><span class="ic"><svg><use href="#i-share"/></svg></span>Share</div>
+            <div class="r"><span class="disc"><img id="pDisc" src="media/dfdog.jpg" alt=""></span></div>
+          </div>
+          <div class="bubbles" id="pBubbles"></div>
+          <div class="pinfo">
+            <div class="h" id="pTicker">$DFDOG</div>
+            <div class="d" id="pDesc"></div>
+            <div class="pfee">fees → <b id="pHandle">@nightshiftnico</b></div>
+          </div>
+          <div class="pbar"><i></i></div>
+        </div>
+        <p class="cap">Live preview · updates as you type</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">How it works</div>
+    <h2>Three steps. Zero DMs.</h2>
+    <div class="how">
+      <div class="card"><div class="ill ill1"><span class="pill">creator = <b>vault_dfdog</b></span></div><span class="n">01 · LAUNCH</span><h3>You launch on pump.fun</h3><p>You pay and sign. A dedicated fee vault is set as the coin's creator, tied to the @handle.</p></div>
+      <div class="card"><div class="ill ill2"><div class="vault"><i></i><i></i><i></i><i></i><i></i></div></div><span class="n">02 · COLLECT</span><h3>Fees stack up per trade</h3><p>Every buy and sell sends a creator fee to that vault, even before the creator signs up.</p></div>
+      <div class="card"><div class="ill ill3"><div class="bio"><span>@nightshiftnico</span><span>dance at 3am · <code>FYP-7KQ2XA</code></span><span class="ok">✓ verified · 3.07 SOL sent</span></div></div><span class="n">03 · CLAIM</span><h3>The creator gets paid</h3><p>They drop a one-time code in their bio, link a wallet, and receive everything owed in SOL.</p></div>
+    </div>
+  </section>
+
+  <section id="buyback">
+    <div class="fly">
+      <div class="big">100%</div>
+      <div><div class="eyebrow">The $FYP flywheel</div><h2>of FYPaid's revenue buys back &amp; burns $FYP.</h2>
+        <p class="lede">More launches mean more fees. More fees mean more $FYP bought on the market. Every token bought is burned.</p></div>
+    </div>
+    <div class="flow">
+      <div><span class="k">→ 10%</span><b>Every launch</b><span>FYPaid keeps 10% of the coin's creator fees.</span></div>
+      <div><span class="k">→ 100%</span><b>Market buy</b><span>All of that SOL buys $FYP on pump.fun.</span></div>
+      <div><span class="k">→ 0x…dead</span><b>Burned</b><span>Sent to the incinerator, out of circulation for good.</span></div>
+    </div>
+    <div class="burned"><span class="tag">Already burned</span><span class="v" id="burnedV">—</span><a href="#dashboard" data-go="dashboard">Dashboard →</a></div>
+  </section>
+
+  <section>
+    <div class="sechead"><div><div class="eyebrow">Trending</div><h2>On the For You page</h2></div><a href="#launches" data-go="launches">See all launches →</a></div>
+    <div class="feed" id="feedHome"></div>
+    <p class="tag" style="margin-top:16px">Example launches shown until the backend is connected</p>
+  </section>
+
+  <section>
+    <div class="sechead"><div><div class="eyebrow">Leaderboard</div><h2>Top-paid creators</h2></div><span class="tag">Example data</span></div>
+    <div class="lb" id="lb"></div>
+  </section>
+
+  <section>
+    <div class="eyebrow">FAQ</div>
+    <h2 style="margin-bottom:28px">Questions</h2>
+    <div class="faq">
+      <details><summary>Does the creator need to sign up before I launch?</summary><p>No. Fees collect in the @handle's vault from the first trade. When the creator verifies, they receive everything owed at once.</p></details>
+      <details><summary>How does a creator prove the account is theirs?</summary><p>They get a one-time code on the Claim page and paste it into their TikTok bio. FYPaid reads the public profile once, then they can delete the code.</p></details>
+      <details><summary>What if the creator never claims?</summary><p>Unclaimed fees return to the launcher's wallet after 60 days.</p></details>
+      <details><summary>Is this trustless?</summary><p>No. Fees route through the operator's vault and are paid out by script. Only launch what you're comfortable trusting a custodian with.</p></details>
+      <details><summary>Is FYPaid part of TikTok?</summary><p>No. FYPaid is independent and isn't affiliated with or endorsed by TikTok. A coin naming a creator doesn't mean they endorse it until they verify.</p></details>
+    </div>
+  </section>
+</div>
+
+<div class="view" id="v-launches" hidden>
+  <div class="sechead"><div><div class="eyebrow">Feed</div><h2>All launches</h2></div><span class="tag">Example data</span></div>
+  <div class="feed" id="feedAll"></div>
+</div>
+
+<div class="view" id="v-dashboard" hidden>
+  <div class="sechead"><div><div class="eyebrow">Stats</div><h2>Dashboard</h2></div><span class="tag">Example data</span></div>
+  <div class="kpis">
+    <div class="card kpi"><div class="l">Coins launched</div><div class="v" id="kCoins">0</div></div>
+    <div class="card kpi"><div class="l">Fees earned</div><div class="v" id="kFees">0</div></div>
+    <div class="card kpi"><div class="l">Paid to creators</div><div class="v" id="kPaid">0</div></div>
+    <div class="card kpi"><div class="l">Burned</div><div class="v" id="kBurn">0</div></div>
+  </div>
+  <h3 style="margin-bottom:14px">Creators</h3>
+  <div class="tblwrap"><table>
+    <thead><tr><th>Creator</th><th>Status</th><th class="num">Coins</th><th class="num">Fees (SOL)</th><th class="num">Claimed (SOL)</th></tr></thead>
+    <tbody id="creatorRows"></tbody>
+  </table></div>
+</div>
+
+<div class="view" id="v-posts" hidden>
+  <div class="sechead"><div><div class="eyebrow">Bounties</div><h2>Posts</h2></div><span class="tag">Example data</span></div>
+  <p class="lede" style="margin:0 0 26px">Launchers post a SOL bounty for a TikTok about their coin. Verified creators accept and post.</p>
+  <div class="tblwrap"><table>
+    <thead><tr><th>Coin</th><th>Creator</th><th>Ask</th><th class="num">Bounty (SOL)</th><th>Status</th></tr></thead>
+    <tbody id="postRows"></tbody>
+  </table></div>
+</div>
+
+<div class="view" id="v-claim" hidden>
+  <div class="sechead"><div><div class="eyebrow">For creators</div><h2>Claim your fees</h2></div></div>
+  <div class="claimgrid">
+    <div class="card stack">
+      <div class="field"><label for="claimHandle">Your TikTok handle</label>
+        <div class="handle"><span>@</span><input type="text" id="claimHandle" placeholder="yourhandle" spellcheck="false"></div></div>
+      <button class="btn btn-cyan full" id="genCode">Get verification code</button>
+      <div id="codeBox" hidden>
+        <p style="margin:0;font-size:14px">Paste this code anywhere in your TikTok bio, then press Verify.</p>
+        <div class="code" id="codeV"></div>
+        <button class="btn btn-pink full" id="verifyBtn">Verify bio</button>
+      </div>
+      <div class="status" id="claimStatus" role="status"></div>
+    </div>
+    <div class="card">
+      <div class="vstep"><span class="k">1</span><div><b>Get a code</b><span>Enter the handle coins were launched for.</span></div></div>
+      <div class="vstep"><span class="k">2</span><div><b>Prove it's you</b><span>Add the code to your bio. We read your public profile once, then you can remove it.</span></div></div>
+      <div class="vstep"><span class="k">3</span><div><b>Link a wallet</b><span>Connect a Solana wallet. Future fees go there automatically.</span></div></div>
+      <div class="vstep"><span class="k">4</span><div><b>Claim</b><span>Everything already in your vault is sent in one transaction.</span></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="view" id="v-invite" hidden>
+  <div class="sechead"><div><div class="eyebrow">Referrals</div><h2>Invite launchers</h2></div></div>
+  <div class="card stack" style="max-width:660px">
+    <p style="margin:0">Share your link. You earn 1% of creator fees from every coin launched through it, taken from FYPaid's 10% cut, never from the creator's.</p>
+    <div class="code" id="refLink" style="font-size:14px;letter-spacing:0;word-break:break-all;margin:0">Connect a wallet to get your link</div>
+    <button class="btn btn-cyan" id="copyRef" style="justify-self:start">Copy link</button>
+  </div>
+</div>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="frow">
+    <div><a class="logo" href="#launch" data-go="launch"><svg><use href="#mark"/></svg><span class="wm">FY<b>Paid</b></span></a>
+      <p>Independent and not affiliated with TikTok or ByteDance. Memecoins are highly speculative. Don't launch a coin in someone's name to mislead buyers.</p></div>
+    <div class="flinks"><a href="#launch" data-go="launch">Launch</a><a href="#launches" data-go="launches">Launches</a><a href="#claim" data-go="claim">Claim</a><a href="#invite" data-go="invite">Invite</a><a href="https://pump.fun" target="_blank" rel="noopener">pump.fun ↗</a></div>
+  </div>
+  <div class="fgiant" aria-hidden="true">FYPaid</div>
+</div></footer>
+<div class="pover" id="pover" hidden><div class="psheet" role="dialog" aria-modal="true" aria-label="Creator profile"><button class="pclose" id="pclose" aria-label="Close profile">×</button><div id="pbody"></div></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const toast=t=>{const e=$('#toast');e.textContent=t;e.hidden=false;clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,2200)};
+async function copy(text){try{await navigator.clipboard.writeText(text);toast('Copied')}catch(e){toast('Select and copy manually')}}
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const views=['launch','launches','dashboard','posts','claim','invite'];
+function go(v){if(!views.includes(v))v='launch';
+  views.forEach(n=>$('#v-'+n).hidden=n!==v);
+  document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-current',t.dataset.go===v));
+  window.scrollTo(0,0);try{history.replaceState(null,'','#'+v)}catch(e){}}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-go]');if(t){e.preventDefault();go(t.dataset.go)}});
+$('#ctaLaunch').addEventListener('click',e=>{e.preventDefault();$('#builder').scrollIntoView({behavior:reduce?'auto':'smooth'})});
+go((location.hash||'#launch').slice(1));
+
+const COINS=[
+ {n:'Dance Floor Dog',t:'DFDOG',h:'nightshiftnico',mc:184.2,f:3.41,c:'#25f4ee',v:'2.1M',m:'dfdog',ch:'+412%',d:'The dog from the 3am dance video. Every trade pays the creator.',likes:'12.4K'},
+ {n:'Grandma Trades',t:'GRANNY',h:'cryptogranbarb',mc:96.7,f:1.88,c:'#fe2c55',v:'880K',m:'granny',ch:'+188%',d:'Barb explains charts better than your favorite analyst.',likes:'8.9K'},
+ {n:'Sigma Snail',t:'SNAIL',h:'slowalpha',mc:61.3,f:0.94,c:'#f6d743',v:'412K',m:'snail',ch:'+96%',d:'Slow and steady. Fees go to the guy who called it first.',likes:'4.1K'},
+ {n:'Rug Pull Prevention',t:'NORUG',h:'onchainolivia',mc:42.0,f:0.71,c:'#9b8cff',v:'305K',m:'norug',ch:'+54%',d:'Olivia audits launches live. This one pays her for it.',likes:'3.3K'},
+ {n:'Feed Me Alpha',t:'FEED',h:'solsamurai',mc:33.9,f:0.52,c:'#3ddc97',v:'190K',m:'feed',ch:'+31%',d:'Daily alpha, served hot.',likes:'2.0K'},
+ {n:'Duet Coin',t:'DUET',h:'nightshiftnico',mc:28.4,f:0.39,c:'#ff9f43',v:'144K',m:'duet',ch:'+22%',d:'Duet the dog. Get the coin.',likes:'1.4K'},
+ {n:'Stitch This',t:'STITCH',h:'memeauditor',mc:19.6,f:0.21,c:'#25f4ee',v:'97K',m:'stitch',ch:'+12%',d:'Stitch your best take.',likes:'880'},
+ {n:'Ring Light',t:'LIGHT',h:'cryptogranbarb',mc:12.1,f:0.12,c:'#fe2c55',v:'51K',m:'light',ch:'+7%',d:'Lighting the way.',likes:'512'}];
+const CREATORS={nightshiftnico:'v',cryptogranbarb:'v',slowalpha:'u',onchainolivia:'v',solsamurai:'u',memeauditor:'u'};
+const colOf=h=>[...h].reduce((a,c)=>a+c.charCodeAt(0),0)%2?'var(--cyan)':'var(--pink)';
+
+/* example creator profiles (fictional, illustrated avatars) */
+const PROFILES={
+ nightshiftnico:{name:'Nico Varga',bio:'3am dance clips with my pug Bruno. Not financial advice, just vibes.',fol:'1.2M',fing:'312',likes:'18.4M',av:{bg:'#25f4ee',skin:'#e0ac85',hair:'#2b1d14',style:'short',shirt:'#111',acc:'headphones'}},
+ cryptogranbarb:{name:'Barbara · Granny Barb',bio:'72 and retired. I read the charts so you don\'t have to.',fol:'640K',fing:'48',likes:'9.1M',av:{bg:'#fe2c55',skin:'#f4d0b0',hair:'#cfcfd6',style:'bun',shirt:'#7c5cff',acc:'glasses'}},
+ onchainolivia:{name:'Olivia Mensah',bio:'I audit launches live. If it rugs, you hear it here first.',fol:'410K',fing:'201',likes:'5.6M',av:{bg:'#9b8cff',skin:'#8d5a3b',hair:'#1b120c',style:'long',shirt:'#fe2c55',acc:'blush'}},
+ slowalpha:{name:'Sam Okoro',bio:'Slow and steady alpha. One call a week, no more.',fol:'188K',fing:'90',likes:'2.2M',av:{bg:'#f6d743',skin:'#6b4429',hair:'#111',style:'cap',cap:'#25f4ee',shirt:'#111',acc:''}},
+ solsamurai:{name:'Kenji Arai',bio:'Daily Solana alpha in 60 seconds. Sword not included.',fol:'96K',fing:'140',likes:'1.1M',av:{bg:'#3ddc97',skin:'#f1c7a5',hair:'#151515',style:'topknot',shirt:'#222',acc:''}},
+ memeauditor:{name:'Dee Laurent',bio:'Rating memecoins out of 10. Mostly 2s.',fol:'54K',fing:'402',likes:'610K',av:{bg:'#ff9f43',skin:'#c68a5e',hair:'#3a2418',style:'beanie',cap:'#fe2c55',shirt:'#111',acc:'glasses'}}};
+let avc=0;
+function avatarSVG(p){const id='avc'+(++avc),s=p.skin,hc=p.hair,cap=p.cap||'#222';let back='',front='',acc='';
+ const shortHair=`<path d="M31 44Q29 22 50 22Q71 22 69 44Q66 31 52 30Q40 30 31 44Z" fill="${hc}"/>`;
+ if(p.style==='short')front=shortHair;
+ if(p.style==='long'){back=`<path d="M26 48Q22 16 50 16Q78 16 74 48L78 86Q50 96 22 86Z" fill="${hc}"/>`;front=`<path d="M30 46Q29 21 50 21Q71 21 70 46Q64 30 47 32Q37 34 30 46Z" fill="${hc}"/><circle cx="29" cy="40" r="5" fill="${hc}"/><circle cx="71" cy="40" r="5" fill="${hc}"/>`}
+ if(p.style==='bun')front=`<circle cx="50" cy="19" r="8.5" fill="${hc}"/><path d="M31 43Q31 23 50 23Q69 23 69 43Q63 32 50 32Q37 32 31 43Z" fill="${hc}"/>`;
+ if(p.style==='topknot')front=`<circle cx="50" cy="18" r="6.5" fill="${hc}"/><rect x="47" y="21" width="6" height="5" fill="#fe2c55"/>`+shortHair;
+ if(p.style==='cap')front=`<path d="M30 40Q30 19 50 19Q70 19 70 40Z" fill="${cap}"/><path d="M50 40Q72 36 84 42Q74 46 50 44Z" fill="${cap}"/><circle cx="50" cy="20" r="2.5" fill="#fff" opacity=".7"/>`;
+ if(p.style==='beanie')front=`<circle cx="50" cy="15" r="5.5" fill="#fff"/><path d="M30 40Q30 18 50 18Q70 18 70 40Z" fill="${cap}"/><rect x="28.5" y="34" width="43" height="9" rx="4" fill="#fff" opacity=".9"/>`;
+ if(p.acc==='glasses')acc=`<g fill="none" stroke="#141414" stroke-width="2"><circle cx="43" cy="47" r="5.5"/><circle cx="57" cy="47" r="5.5"/><path d="M48.5 47h3"/></g>`;
+ if(p.acc==='headphones')acc=`<path d="M28 50Q27 18 50 18Q73 18 72 50" fill="none" stroke="#141414" stroke-width="4" stroke-linecap="round"/><rect x="23" y="42" width="9" height="15" rx="4.5" fill="#fe2c55"/><rect x="68" y="42" width="9" height="15" rx="4.5" fill="#fe2c55"/>`;
+ if(p.acc==='blush')acc=`<ellipse cx="39" cy="54" rx="4" ry="2.4" fill="#fe2c55" opacity=".35"/><ellipse cx="61" cy="54" rx="4" ry="2.4" fill="#fe2c55" opacity=".35"/><circle cx="31.5" cy="55" r="2" fill="#f6d743"/><circle cx="68.5" cy="55" r="2" fill="#f6d743"/>`;
+ return `<svg viewBox="0 0 100 100" aria-hidden="true"><defs><clipPath id="${id}"><circle cx="50" cy="50" r="50"/></clipPath></defs><g clip-path="url(#${id})"><rect width="100" height="100" fill="${p.bg}"/>${back}<path d="M16 106Q16 72 50 70Q84 72 84 106Z" fill="${p.shirt}"/><rect x="43" y="58" width="14" height="15" rx="6" fill="${s}"/><ellipse cx="50" cy="46" rx="19" ry="21" fill="${s}"/>${front}<circle cx="43" cy="47" r="2.2" fill="#141414"/><circle cx="57" cy="47" r="2.2" fill="#141414"/><path d="M44.5 56.5Q50 61 55.5 56.5" stroke="#141414" stroke-width="2.2" fill="none" stroke-linecap="round"/>${acc}</g></svg>`}
+function avHTML(h,size,bare){const p=PROFILES[(h||'').toLowerCase()];
+ if(p)return bare?avatarSVG(p.av):`<span class="av img" style="width:${size}px;height:${size}px">${avatarSVG(p.av)}</span>`;
+ const L=esc((h||'?')[0].toUpperCase());return bare?L:`<span class="av" style="width:${size}px;height:${size}px;background:${h?colOf(h):'var(--muted)'}">${L}</span>`}
+const media=c=>c.m?`<img class="poster" src="media/${c.m}_p.jpg" alt=""><video class="cv" muted loop playsinline preload="none" src="media/${c.m}.mp4"></video>`:`<div class="bg"></div><div class="g">${esc(c.t[0])}</div>`;
+const card=c=>`<article class="coin" style="--c:${c.c}">${media(c)}<span class="views">▶ ${esc(c.v)}</span><span class="chg">${esc(c.ch||'new')}</span>
+ <div class="m"><div class="nm">${c.m?`<img class="ci" src="media/${c.m}.jpg" alt="">`:''}$${esc(c.t)}</div><div class="to">fees → <b>@${esc(c.h)}</b> <span class="badge ${CREATORS[c.h.toLowerCase()]}">${CREATORS[c.h.toLowerCase()]=='v'?'claimed':'unclaimed'}</span></div>
+ <div class="curve"><i style="width:${Math.min(100,c.mc/2)}%"></i></div>
+ <div class="st"><span>MC ${c.mc.toFixed(1)}k</span><span>${c.f.toFixed(2)} SOL</span></div></div></article>`;
+const io='IntersectionObserver' in window?new IntersectionObserver(es=>es.forEach(e=>{const v=e.target.querySelector('.cv');if(!v)return;
+ if(e.isIntersecting&&!reduce){v.play().then(()=>e.target.classList.add('playing')).catch(()=>{})}else{v.pause();e.target.classList.remove('playing')}}),{threshold:.6}):null;
+function renderFeeds(){$('#feedHome').innerHTML=COINS.slice(0,4).map(card).join('');$('#feedAll').innerHTML=COINS.map(card).join('');
+ if(io)document.querySelectorAll('.coin').forEach(c=>io.observe(c))}
+renderFeeds();
+
+const tot=COINS.reduce((a,c)=>a+c.f,0);
+const by={};COINS.forEach(c=>{by[c.h]=by[c.h]||{n:0,f:0};by[c.h].n++;by[c.h].f+=c.f*.9});
+const paid=Object.entries(by).filter(([h])=>CREATORS[h]=='v').reduce((a,[,d])=>a+d.f,0);
+$('#kCoins').textContent=COINS.length;$('#kFees').textContent=tot.toFixed(2)+' SOL';
+$('#kPaid').textContent=paid.toFixed(2)+' SOL';$('#kBurn').textContent=(tot*.1).toFixed(2)+' SOL';
+$('#burnedV').textContent=(tot*.1).toFixed(3)+' SOL';
+$('#fcTotal').textContent=paid.toFixed(2)+' SOL';
+function countUp(el,to,dec){if(reduce){el.textContent=to.toFixed(dec);return}const t0=performance.now();
+ (function f(t){const k=Math.min(1,(t-t0)/1400),e=1-Math.pow(1-k,3);el.textContent=(to*e).toFixed(dec);if(k<1)requestAnimationFrame(f)})(t0)}
+countUp($('#hsCoins'),COINS.length*143,0);countUp($('#hsPaid'),paid*38,1);countUp($('#hsBurn'),tot*.1*38,1);
+
+const ranked=Object.entries(by).sort((a,b)=>b[1].f-a[1].f);
+$('#creatorRows').innerHTML=ranked.map(([h,d])=>
+ `<tr><td><button class="plink" data-prof="${h}">${avHTML(h,30)}@${h}</button></td><td><span class="badge ${CREATORS[h]}">${CREATORS[h]=='v'?'verified':'unclaimed'}</span></td><td class="num">${d.n}</td><td class="num">${d.f.toFixed(3)}</td><td class="num">${CREATORS[h]=='v'?d.f.toFixed(3):'0.000'}</td></tr>`).join('');
+$('#lb').innerHTML=ranked.slice(0,5).map(([h,d],i)=>
+ `<button class="lbrow" data-prof="${h}"><span class="rk">${i+1}</span>${avHTML(h,44)}
+ <div class="who"><b>@${h} <span class="badge ${CREATORS[h]}">${CREATORS[h]=='v'?'verified':'unclaimed'}</span></b><em>${esc(PROFILES[h]?.name||'')} · ${PROFILES[h]?.fol||'—'} followers</em></div>
+ <span class="coins">${d.n} coin${d.n>1?'s':''}</span><span class="amt">${d.f.toFixed(3)} SOL</span></button>`).join('');
+$('#fcAv').innerHTML=avHTML('nightshiftnico',30);
+
+/* profile sheet */
+function openProfile(h){const p=PROFILES[h]||{name:'',bio:'Not on FYPaid yet.',fol:'—',fing:'—',likes:'—'};const d=by[h]||{n:0,f:0};const v=CREATORS[h]=='v';
+ const coins=COINS.filter(c=>c.h.toLowerCase()===h);
+ $('#pbody').innerHTML=`<div class="pbig">${PROFILES[h]?avatarSVG(p.av):''}</div>
+ <div class="phandle">@${esc(h)} <span class="badge ${v?'v':'u'}">${v?'verified':'unclaimed'}</span></div><div class="pname">${esc(p.name)}</div>
+ <div class="pstats"><div><b>${p.fing}</b><span>Following</span></div><div><b>${p.fol}</b><span>Followers</span></div><div><b>${p.likes}</b><span>Likes</span></div></div>
+ <p class="pbio">${esc(p.bio)}</p>
+ <div class="pbtns"><button class="btn btn-pink" id="pLaunch">Launch a coin for @${esc(h)}</button></div>
+ <div class="pearn"><span><span class="tag">Fees earned on FYPaid</span><br><span style="font-size:13px;color:var(--muted)">${v?'Paid out to their wallet':'Waiting in vault until they claim'}</span></span><span class="v">${d.f.toFixed(3)} SOL</span></div>
+ <div class="ptab">Coins paying @${esc(h)} · ${coins.length}</div>
+ <div class="pcoins">${coins.map(c=>`<div class="pcoin" style="--c:${c.c}">${c.m?`<img src="media/${c.m}_p.jpg" alt="">`:`<div class="gg">${esc(c.t[0])}</div>`}<span>$${esc(c.t)}</span></div>`).join('')}</div>`;
+ $('#pover').hidden=false;$('#pclose').focus();
+ $('#pLaunch').addEventListener('click',()=>{closeProfile();go('launch');$('#handle').value=h;preview();setTimeout(()=>$('#builder').scrollIntoView({behavior:reduce?'auto':'smooth'}),30)})}
+function closeProfile(){$('#pover').hidden=true}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-prof]');if(t){e.preventDefault();openProfile(t.dataset.prof.toLowerCase())}});
+$('#pclose').addEventListener('click',closeProfile);
+$('#pover').addEventListener('click',e=>{if(e.target.id==='pover')closeProfile()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#pover').hidden)closeProfile()});
+$('#postRows').innerHTML=[
+ ['$DFDOG','@nightshiftnico','30s video explaining the coin',0.5,'p','posted'],
+ ['$NORUG','@onchainolivia','Duet with the launch clip',0.3,'v','accepted'],
+ ['$SNAIL','@slowalpha','Mention in daily recap',0.15,'u','open']]
+ .map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td class="num">${r[3].toFixed(2)}</td><td><span class="badge ${r[4]}">${r[5]}</span></td></tr>`).join('');
+
+const tk=[['nightshiftnico','0.42','DFDOG'],['cryptogranbarb','0.18','GRANNY'],['onchainolivia','0.09','NORUG'],['nightshiftnico','0.06','DUET'],['cryptogranbarb','0.03','LIGHT'],['onchainolivia','0.02','NORUG']]
+ .map(([h,s,t])=>`<span><span class="live">● PAID</span><b>@${h}</b> <i>+${s} SOL</i> from $${t}</span>`).join('');
+$('#payTicker').innerHTML=tk+tk;
+
+/* payout bubbles */
+function bubble(box){if(reduce||document.hidden)return;const b=document.createElement('span');b.className='bub';
+ b.textContent='+'+(Math.random()*.08+.005).toFixed(3);b.style.setProperty('--dx',(Math.random()*-40)+'px');
+ box.appendChild(b);setTimeout(()=>b.remove(),2700)}
+setInterval(()=>{bubble($('#heroBubbles'));if(!$('#v-launch').hidden)bubble($('#pBubbles'))},900);
+
+/* hero phone: auto-swipe feed */
+const hs=$('#heroSlides');const top4=COINS.slice(0,4);
+hs.innerHTML=top4.map((c,i)=>`<div class="slide" style="top:${i*100}%;--c:${c.c}"><video muted loop playsinline preload="auto" poster="media/${c.m}_p.jpg" src="media/${c.m}.mp4"></video></div>`).join('');
+const hv=[...hs.querySelectorAll('video')];
+let hi=0,htimer=null;
+function showHero(i){const c=top4[i];hs.style.transform=`translateY(-${i*100}%)`;
+ hv.forEach((v,k)=>{if(k===i){v.currentTime=0;if(!reduce)v.play().catch(()=>{})}else v.pause()});
+ $('#heroDisc').src=`media/${c.m}.jpg`;
+ const bar=$('#heroBar');bar.classList.remove('go');void bar.offsetWidth;if(!reduce)bar.classList.add('go');
+ clearTimeout(htimer);if(!reduce)htimer=setTimeout(()=>{hi=(hi+1)%top4.length;showHero(hi)},5000);
+ $('#heroT').textContent='$'+c.t;$('#heroD').textContent=c.d;$('#heroH').textContent='@'+c.h;
+ $('#heroAv').innerHTML=avHTML(c.h,44,true);
+ $('#heroLikes').textContent=c.likes;$('#heroFee').textContent=c.f.toFixed(2)}
+showHero(0);
+$('#heroPhone').addEventListener('click',()=>{hi=(hi+1)%top4.length;showHero(hi)});
+let ty=null;$('#heroPhone').addEventListener('touchstart',e=>{ty=e.touches[0].clientY},{passive:true});
+$('#heroPhone').addEventListener('touchend',e=>{if(ty==null)return;const dy=e.changedTouches[0].clientY-ty;ty=null;
+ if(Math.abs(dy)>40){hi=(hi+(dy<0?1:top4.length-1))%top4.length;showHero(hi)}});
+
+/* wallet */
+let wallet=null;
+function setWallet(pk){wallet=pk;$('#wtext').textContent=pk.slice(0,4)+'…'+pk.slice(-4);$('#wdot').classList.add('on');
+ $('#launchBtn').textContent='Launch coin';$('#refLink').textContent='https://fypaid.app/?ref='+pk.slice(0,8)}
+async function connect(){const p=window.phantom?.solana||window.solana;
+ if(p?.isPhantom){try{const r=await p.connect();setWallet(r.publicKey.toString());toast('Wallet connected');return true}catch(e){toast('Connection cancelled');return false}}
+ setWallet('Demo'+Math.random().toString(36).slice(2,10)+'Wa11');toast('Demo wallet (no Phantom found)');return true}
+$('#walletBtn').addEventListener('click',connect);
+
+/* live preview */
+let imgURL=null;
+function preview(){
+ const n=$('#name').value.trim(),t=$('#ticker').value.trim(),h=$('#handle').value.trim(),d=$('#desc').value.trim();
+ $('#pTicker').textContent=t?'$'+t:'$TICKER';$('#pDesc').textContent=d||n||'Your coin description';
+ $('#pHandle').textContent=h?'@'+h:'@handle';$('#pGlyph').textContent=(t||n||'?')[0].toUpperCase();$('#pGlyph').hidden=true;
+ $('#pAv').innerHTML=avHTML(h,44,true);$('#pAv').style.background=h&&!PROFILES[h.toLowerCase()]?colOf(h):'';
+ const p=$('#creatorPreview');
+ if(!h){p.innerHTML='<span style="color:var(--muted)">Any public TikTok account. They claim by verifying their bio.</span>';$('#pFee').textContent='0';return}
+ const st=CREATORS[h.toLowerCase()];$('#pFee').textContent=(by[h.toLowerCase()]?.f||0).toFixed(2);
+ const pr=PROFILES[h.toLowerCase()];
+ p.innerHTML=`${avHTML(h,36)}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis"><b>@${esc(h)}</b>${pr?`<br><span style="color:var(--muted)">${esc(pr.name)} · ${pr.fol} followers</span>`:''}</span>`+
+  (st=='v'?'<span class="badge v">verified · paid instantly</span>':'<span class="badge u">not on FYPaid yet · fees wait</span>')}
+['name','desc'].forEach(id=>$('#'+id).addEventListener('input',preview));
+$('#ticker').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');preview()});
+$('#handle').addEventListener('input',e=>{e.target.value=e.target.value.replace(/^@/,'').replace(/[^a-zA-Z0-9._]/g,'').slice(0,24);preview()});
+$('#img').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;
+ if(f.size>4*1024*1024){toast('Image is over 4 MB');e.target.value='';return}
+ imgURL=URL.createObjectURL(f);$('#thumb').innerHTML=`<img src="${imgURL}" alt="">`;$('#pBg').innerHTML=`<img src="${imgURL}" alt="">`;$('#pBg').style.opacity=1;
+ const pv=$('#pVid');pv.pause();pv.hidden=true;$('#pDisc').src=imgURL;preview()});
+if(reduce)$('#pVid').pause();
+$('#addSocials').addEventListener('click',()=>{$('#socials').hidden=!$('#socials').hidden});
+preview();
+
+$('#launchForm').addEventListener('submit',async e=>{e.preventDefault();const s=$('#launchStatus');s.className='status';
+ if(!wallet){await connect();return}
+ const name=$('#name').value.trim(),t=$('#ticker').value.trim(),h=$('#handle').value.trim();
+ if(!name||!t){s.className='status err';s.textContent='Add a name and ticker to launch.';return}
+ if(!h){s.className='status err';s.textContent='Add the TikTok @handle that should receive the fees.';return}
+ const btn=$('#launchBtn');btn.disabled=true;
+ for(const m of ['Uploading metadata…','Building pump.fun create transaction…','Waiting for wallet signature…']){s.textContent=m;await new Promise(r=>setTimeout(r,700))}
+ btn.disabled=false;
+ COINS.unshift({n:name,t,h,mc:4.2,f:0,c:['#25f4ee','#fe2c55','#f6d743'][COINS.length%3],v:'new',ch:'new'});
+ CREATORS[h.toLowerCase()]=CREATORS[h.toLowerCase()]||'u';renderFeeds();
+ s.className='status ok';s.textContent=`Demo launch: $${t} is live in the feed. Fees route to @${h}.`});
+
+$('#genCode').addEventListener('click',()=>{const h=$('#claimHandle').value.replace(/^@/,'').trim();const s=$('#claimStatus');
+ if(!h){s.className='status err';s.textContent='Enter your TikTok handle first.';return}
+ $('#codeV').textContent='FYP-'+Math.random().toString(36).slice(2,8).toUpperCase();$('#codeBox').hidden=false;s.textContent=''});
+$('#verifyBtn').addEventListener('click',async()=>{const s=$('#claimStatus');s.className='status';s.textContent='Checking your public bio…';
+ await new Promise(r=>setTimeout(r,900));const h=$('#claimHandle').value.replace(/^@/,'').trim().toLowerCase();
+ s.className='status ok';s.textContent=`Demo: @${h} verified. ${(by[h]?.f||0).toFixed(3)} SOL ready to claim. Connect a wallet to receive it.`});
+$('#copyCa').addEventListener('click',()=>copy($('#caText').textContent));
+$('#copyRef').addEventListener('click',()=>copy($('#refLink').textContent));
+</script>
+</body></html>
