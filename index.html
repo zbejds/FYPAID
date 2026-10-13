@@ -801,8 +801,9 @@ $('#verifyBtn').addEventListener('click',async()=>{const s=$('#claimStatus');s.c
  await new Promise(r=>setTimeout(r,900));const h=$('#claimHandle').value.replace(/^@/,'').trim().toLowerCase();
  s.className='status ok';s.textContent=`Demo: @${h} verified. ${(by[h]?.f||0).toFixed(3)} SOL ready to claim. Connect a wallet to receive it.`});
 /* ===== Paste your $FYP contract address between the quotes after launch ===== */
-const CA='';
-if(CA){$('#caText').textContent=CA;$('#caText').classList.remove('ca-empty')}else{$('#copyCa').disabled=true}
+const CA='GAmiqKqrVEwyHWPzSrW7tv26jDrCbeo5Aa78amsapump';
+if(CA){$('#caText').textContent=CA;$('#caText').title=CA;$('#caText').classList.remove('ca-empty');
+ document.querySelectorAll('.ca a.mini[href="https://pump.fun"]').forEach(a=>a.href='https://pump.fun/coin/'+CA)}else{$('#copyCa').disabled=true}
 $('#copyCa').addEventListener('click',()=>{if(CA)copy(CA)});
 $('#copyRef').addEventListener('click',()=>copy($('#refLink').textContent));
 </script>
